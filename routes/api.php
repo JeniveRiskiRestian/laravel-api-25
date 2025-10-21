@@ -7,5 +7,5 @@ Route::get('/halo', function () {
     return 'Halo, Laravel';
     });
 
-Route::get('/product', [ProductController::class, 'index']);
+Route::get('/productposts', [ProductController::class, 'index']);
 Route::post('/product-store', [ProductController::class, 'store']);
