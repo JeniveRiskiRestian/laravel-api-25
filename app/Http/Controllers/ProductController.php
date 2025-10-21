@@ -17,7 +17,7 @@ class ProductController extends Controller
             'name' => 'required|max:255',
             'code' => 'required',
         ]);
-        $product = Product::create($request->all());
+        $product = Product::create($validatedData);
         return response()->json($product, 201);
     }
 }
