@@ -2,16 +2,15 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VendorController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 Route::prefix('v1')->group(function () {
     Route::resource('products', ProductController::class);
+
+    Route::get('/product', [ProductController::class, 'index']);
+
     Route::resource('vendors', VendorController::class);
+    Route::post('/product-store', [ProductController::class, 'store']);
     
     Route::get('/halo', function () {
         return 'Halo, Laravel';
