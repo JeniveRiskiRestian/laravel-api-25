@@ -8,18 +8,13 @@ use Illuminate\Http\Request;
 
 class ProductCategoryController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
         $productCategories = ProductCategory::all();
         return response()->json($productCategories);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -31,6 +26,7 @@ class ProductCategoryController extends Controller
             'name' => 'required|max:255',
             'description' => 'required',
         ]);
+
         $product = ProductCategory::create($validatedData);
         return response()->json($product, 201);
     }
@@ -40,15 +36,28 @@ class ProductCategoryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $productCategory = ProductCategory::find($id);
+
+        if (!$productCategory) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
+        return response()->json($productCategory);
     }
 
     /**
      * Show the form for editing the specified resource.
+     * (Biasanya tidak digunakan di API, tapi tetap kita buat untuk kelengkapan)
      */
     public function edit(string $id)
     {
-        //
+        $productCategory = ProductCategory::find($id);
+
+        if (!$productCategory) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
+        return response()->json($productCategory);
     }
 
     /**
@@ -56,7 +65,23 @@ class ProductCategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $productCategory = ProductCategory::find($id);
+
+        if (!$productCategory) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|max:255',
+            'description' => 'sometimes|required',
+        ]);
+
+        $productCategory->update($validatedData);
+
+        return response()->json([
+            'message' => 'Category updated successfully',
+            'data' => $productCategory
+        ]);
     }
 
     /**
@@ -64,6 +89,14 @@ class ProductCategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $productCategory = ProductCategory::find($id);
+
+        if (!$productCategory) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
+        $productCategory->delete();
+
+        return response()->json(['message' => 'Category deleted successfully']);
     }
 }
