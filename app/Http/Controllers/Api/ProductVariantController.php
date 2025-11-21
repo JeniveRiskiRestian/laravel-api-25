@@ -8,26 +8,12 @@ use Illuminate\Http\Request;
 
 class ProductVariantController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $productVariants = ProductVariant::all();
+        $productVariants = ProductVariant::with('product')->get();
         return response()->json($productVariants);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -35,63 +21,55 @@ class ProductVariantController extends Controller
             'name' => 'required|max:255',
             'price' => 'required|numeric',
         ]);
-        $productVariant = ProductVariant::create($validatedData);
-        return response()->json($productVariant, 201);
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-        $productVariant = ProductVariant::find($id);
-        if (!$productVariant) {
-            return response()->json(['message' => 'Product variant not found'], 404);
-        }
+        $productVariant = ProductVariant::create($validatedData);
+        $productVariant->load(relations: 'product');
+
         return response()->json($productVariant);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function show(string $id)
     {
-        //
-    }
+        $productVariant = ProductVariant::with('product')->find($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-        $productVariant = ProductVariant::find($id);
         if (!$productVariant) {
             return response()->json(['message' => 'Product variant not found'], 404);
         }
+
+        return response()->json($productVariant);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $productVariant = ProductVariant::find($id);
+
+        if (!$productVariant) {
+            return response()->json(['message' => 'Product variant not found'], 404);
+        }
+
         $validatedData = $request->validate([
             'name' => 'sometimes|required|max:255',
             'price' => 'sometimes|required|numeric',
         ]);
+
         $productVariant->update($validatedData);
+
         return response()->json([
             'message' => 'Product variant updated successfully',
-            'data' => $productVariant
+            'data' => ProductVariant::with('product')->find($id)
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
         $productVariant = ProductVariant::find($id);
+
         if (!$productVariant) {
             return response()->json(['message' => 'Product variant not found'], 404);
         }
+
         $productVariant->delete();
+
         return response()->json(['message' => 'Product variant deleted successfully']);
     }
 }
