@@ -5,71 +5,112 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Exception;
 
 class ProductVariantController extends Controller
 {
     public function index()
     {
-        $productVariants = ProductVariant::with('product')->get();
-        return response()->json($productVariants);
+        try {
+            $productVariants = ProductVariant::with('product')->get();
+            return response()->json($productVariants);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch product variants',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'name' => 'required|max:255',
-            'price' => 'required|numeric',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'name'       => 'required|max:255',
+                'price'      => 'required|numeric',
+            ]);
 
-        $productVariant = ProductVariant::create($validatedData);
-        $productVariant->load(relations: 'product');
+            $productVariant = ProductVariant::create($validatedData);
+            $productVariant->load('product');
 
-        return response()->json($productVariant);
+            return response()->json($productVariant, 201);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create product variant',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show(string $id)
     {
-        $productVariant = ProductVariant::with('product')->find($id);
+        try {
+            $productVariant = ProductVariant::with('product')->find($id);
 
-        if (!$productVariant) {
-            return response()->json(['message' => 'Product variant not found'], 404);
+            if (!$productVariant) {
+                return response()->json(['message' => 'Product variant not found'], 404);
+            }
+
+            return response()->json($productVariant);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch product variant',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($productVariant);
     }
 
     public function update(Request $request, string $id)
     {
-        $productVariant = ProductVariant::find($id);
+        try {
+            $productVariant = ProductVariant::find($id);
 
-        if (!$productVariant) {
-            return response()->json(['message' => 'Product variant not found'], 404);
+            if (!$productVariant) {
+                return response()->json(['message' => 'Product variant not found'], 404);
+            }
+
+            $validatedData = $request->validate([
+                'name'  => 'sometimes|required|max:255',
+                'price' => 'sometimes|required|numeric',
+            ]);
+
+            $productVariant->update($validatedData);
+
+            return response()->json([
+                'message' => 'Product variant updated successfully',
+                'data'    => ProductVariant::with('product')->find($id)
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update product variant',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $validatedData = $request->validate([
-            'name' => 'sometimes|required|max:255',
-            'price' => 'sometimes|required|numeric',
-        ]);
-
-        $productVariant->update($validatedData);
-
-        return response()->json([
-            'message' => 'Product variant updated successfully',
-            'data' => ProductVariant::with('product')->find($id)
-        ], 200);
     }
 
     public function destroy(string $id)
     {
-        $productVariant = ProductVariant::find($id);
+        try {
+            $productVariant = ProductVariant::find($id);
 
-        if (!$productVariant) {
-            return response()->json(['message' => 'Product variant not found'], 404);
+            if (!$productVariant) {
+                return response()->json(['message' => 'Product variant not found'], 404);
+            }
+
+            $productVariant->delete();
+
+            return response()->json(['message' => 'Product variant deleted successfully']);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete product variant',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $productVariant->delete();
-
-        return response()->json(['message' => 'Product variant deleted successfully']);
     }
 }

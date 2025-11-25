@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Exception;
 
 class ProductCategoryController extends Controller
 {
@@ -13,8 +14,16 @@ class ProductCategoryController extends Controller
      */
     public function index()
     {
-        $productCategories = ProductCategory::all();
-        return response()->json($productCategories);
+        try {
+            $productCategories = ProductCategory::all();
+            return response()->json($productCategories);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch categories',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -22,13 +31,22 @@ class ProductCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|max:255',
+                'description' => 'required',
+            ]);
 
-        $product = ProductCategory::create($validatedData);
-        return response()->json($product, 201);
+            $product = ProductCategory::create($validatedData);
+
+            return response()->json($product, 201);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create category',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -36,28 +54,43 @@ class ProductCategoryController extends Controller
      */
     public function show(string $id)
     {
-        $productCategory = ProductCategory::find($id);
+        try {
+            $productCategory = ProductCategory::find($id);
 
-        if (!$productCategory) {
-            return response()->json(['message' => 'Category not found'], 404);
+            if (!$productCategory) {
+                return response()->json(['message' => 'Category not found'], 404);
+            }
+
+            return response()->json($productCategory);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch category',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($productCategory);
     }
 
     /**
      * Show the form for editing the specified resource.
-     * (Biasanya tidak digunakan di API, tapi tetap kita buat untuk kelengkapan)
      */
     public function edit(string $id)
     {
-        $productCategory = ProductCategory::find($id);
+        try {
+            $productCategory = ProductCategory::find($id);
 
-        if (!$productCategory) {
-            return response()->json(['message' => 'Category not found'], 404);
+            if (!$productCategory) {
+                return response()->json(['message' => 'Category not found'], 404);
+            }
+
+            return response()->json($productCategory);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch category',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($productCategory);
     }
 
     /**
@@ -65,23 +98,31 @@ class ProductCategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $productCategory = ProductCategory::find($id);
+        try {
+            $productCategory = ProductCategory::find($id);
 
-        if (!$productCategory) {
-            return response()->json(['message' => 'Category not found'], 404);
+            if (!$productCategory) {
+                return response()->json(['message' => 'Category not found'], 404);
+            }
+
+            $validatedData = $request->validate([
+                'name' => 'sometimes|required|max:255',
+                'description' => 'sometimes|required',
+            ]);
+
+            $productCategory->update($validatedData);
+
+            return response()->json([
+                'message' => 'Category updated successfully',
+                'data' => $productCategory
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update category',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $validatedData = $request->validate([
-            'name' => 'sometimes|required|max:255',
-            'description' => 'sometimes|required',
-        ]);
-
-        $productCategory->update($validatedData);
-
-        return response()->json([
-            'message' => 'Category updated successfully',
-            'data' => $productCategory
-        ]);
     }
 
     /**
@@ -89,14 +130,22 @@ class ProductCategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        $productCategory = ProductCategory::find($id);
+        try {
+            $productCategory = ProductCategory::find($id);
 
-        if (!$productCategory) {
-            return response()->json(['message' => 'Category not found'], 404);
+            if (!$productCategory) {
+                return response()->json(['message' => 'Category not found'], 404);
+            }
+
+            $productCategory->delete();
+
+            return response()->json(['message' => 'Category deleted successfully']);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete category',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $productCategory->delete();
-
-        return response()->json(['message' => 'Category deleted successfully']);
     }
 }

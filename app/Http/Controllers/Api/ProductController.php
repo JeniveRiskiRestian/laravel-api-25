@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Exception;
 
 class ProductController extends Controller
 {
@@ -13,9 +14,16 @@ class ProductController extends Controller
      */
     public function index()
     {
-        // tampilkan relasi category dan variants
-        $products = Product::with(['ProductCategory'])->get();
-        return response()->json($products);
+        try {
+            $products = Product::with(['ProductCategory'])->get();
+            return response()->json($products);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch products',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -23,20 +31,27 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'product_category_id' => 'required|exists:product_categories,id',
-            'name' => 'required|max:255',
-            'code' => 'required',
-            'description' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_category_id' => 'required|exists:product_categories,id',
+                'name'                => 'required|max:255',
+                'code'                => 'required',
+                'description'         => 'required',
+            ]);
 
-        $product = Product::create($validatedData);
+            $product = Product::create($validatedData);
 
-        // return lengkap dengan relasi
-        return response()->json(
-            Product::with(['ProductCategory'])->find($product->id),
-            201
-        );
+            return response()->json(
+                Product::with(['ProductCategory'])->find($product->id),
+                201
+            );
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create product',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -44,14 +59,21 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        // tampilkan relasi category dan variants
-        $product = Product::with(['ProductCategory'])->find($id);
+        try {
+            $product = Product::with(['ProductCategory'])->find($id);
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            return response()->json($product);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch product',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($product);
     }
 
     /**
@@ -59,24 +81,32 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $product = Product::find($id);
+        try {
+            $product = Product::find($id);
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $validatedData = $request->validate([
+                'name'        => 'sometimes|required|max:255',
+                'code'        => 'sometimes|required',
+                'description' => 'sometimes|required',
+            ]);
+
+            $product->update($validatedData);
+
+            return response()->json([
+                'message' => 'Product updated successfully',
+                'data'    => Product::with(['ProductCategory'])->find($id)
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update product',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $validatedData = $request->validate([
-            'name' => 'sometimes|required|max:255',
-            'code' => 'sometimes|required',
-            'description' => 'sometimes|required',
-        ]);
-
-        $product->update($validatedData);
-
-        return response()->json([
-            'message' => 'Product updated successfully',
-            'data' => Product::with(['ProductCategory'])->find($id)
-        ], 200);
     }
 
     /**
@@ -84,14 +114,22 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        $product = Product::find($id);
+        try {
+            $product = Product::find($id);
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $product->delete();
+
+            return response()->json(['message' => 'Product deleted successfully']);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete product',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $product->delete();
-
-        return response()->json(['message' => 'Product deleted successfully']);
     }
 }
