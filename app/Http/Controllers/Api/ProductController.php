@@ -4,18 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Exception;
 
 class ProductController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource. $variable
      */
     public function index()
     {
         try {
-            $products = Product::with(['ProductCategory'])->get();
+            $products = Product::with(['categories','variants'])->get();
             return response()->json($products);
 
         } catch (Exception $e) {
@@ -60,7 +61,7 @@ class ProductController extends Controller
     public function show(string $id)
     {
         try {
-            $product = Product::with(['ProductCategory'])->find($id);
+            $product = Product::with(['ProductCategory','ProductVariant'])->find($id);
 
             if (!$product) {
                 return response()->json(['message' => 'Product not found'], 404);

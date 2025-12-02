@@ -8,13 +8,13 @@ class Product extends Model
 {
     protected $fillable = ['name', 'code', 'description', 'product_category_id'];
 
-    public function productCategory()
+    public function categories()
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
-    public function productvariant()
+    public function variants()
     {
-        return $this->belongsTo(ProductVariant::class, 'product_id');
+        return $this->hashMany(ProductVariant::class, 'product_id');
     }
 
 }

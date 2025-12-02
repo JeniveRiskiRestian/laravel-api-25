@@ -12,7 +12,7 @@ class ProductVariantController extends Controller
     public function index()
     {
         try {
-            $productVariants = ProductVariant::with('product')->get();
+            $productVariants = ProductVariant::with(['categories','products'])->get();
             return response()->json($productVariants);
 
         } catch (Exception $e) {
@@ -27,6 +27,7 @@ class ProductVariantController extends Controller
     {
         try {
             $validatedData = $request->validate([
+                'product_category_id' => 'required|exists:product_categories,id',
                 'product_id' => 'required|exists:products,id',
                 'name'       => 'required|max:255',
                 'price'      => 'required|numeric',
