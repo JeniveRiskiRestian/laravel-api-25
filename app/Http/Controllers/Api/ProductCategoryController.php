@@ -16,7 +16,9 @@ class ProductCategoryController extends Controller
     {
         try {
             $productCategories = ProductCategory::with(['products','variants'])->get();
-            return response()->json($productCategories);
+            return response()->json([
+                'data' => $productCategories,
+        ], 200);
 
         } catch (Exception $e) {
             return response()->json([
