@@ -16,7 +16,7 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $products = Product::with(['categories','variants'])->get();
+            $products = Product::with(['category','variants'])->get();
             return response()->json($products);
 
         } catch (Exception $e) {
@@ -37,13 +37,14 @@ class ProductController extends Controller
                 'product_category_id' => 'required|exists:product_categories,id',
                 'name'                => 'required|max:255',
                 'code'                => 'required',
+                'price'               => 'required|numeric',
                 'description'         => 'required',
             ]);
 
             $product = Product::create($validatedData);
 
             return response()->json(
-                Product::with(['ProductCategory'])->find($product->id),
+                Product::with(['category'])->find($product->id),
                 201
             );
 
@@ -61,7 +62,7 @@ class ProductController extends Controller
     public function show(string $id)
     {
         try {
-            $product = Product::with(['ProductCategory','ProductVariant'])->find($id);
+            $product = Product::with(['category','variants'])->find($id);
 
             if (!$product) {
                 return response()->json(['message' => 'Product not found'], 404);
@@ -92,14 +93,15 @@ class ProductController extends Controller
             $validatedData = $request->validate([
                 'name'        => 'sometimes|required|max:255',
                 'code'        => 'sometimes|required',
-                'description' => 'sometimes|required',
+                'price'       => 'sometimes|required|numeric',
+                'description'         => 'sometimes|required',
             ]);
 
             $product->update($validatedData);
 
             return response()->json([
                 'message' => 'Product updated successfully',
-                'data'    => Product::with(['ProductCategory'])->find($id)
+                'data'    => Product::with(['category'])->find($id)
             ], 200);
 
         } catch (Exception $e) {
